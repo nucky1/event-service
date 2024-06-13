@@ -1,0 +1,29 @@
+{  
+    "development": {
+        "username": "root",
+        "password": "MnBvCxZqWeRtY102938!",
+        "database": "turnero",
+        "host": "127.0.0.1",
+        "logging": false,
+        "dialect": "mysql",
+        "timezone": "-03:00"
+    },
+    "test": {
+        "username": "root",
+        "password": "MnBvCxZqWeRtY102938!",
+        "database": "turnero",
+        "host": "db",
+        "logging": false,
+        "dialect": "mysql",
+        "timezone": "-03:00"
+    },
+    "production": {
+        "username": "root",
+        "password": "MnBvCxZqWeRtY102938!",
+        "database": "turnero",
+        "host": "db",
+        "logging": false,
+        "dialect": "mysql",
+        "timezone": "-03:00"
+    }
+}
