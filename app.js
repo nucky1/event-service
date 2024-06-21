@@ -47,14 +47,35 @@ app.use('/api', router);
 // para que quien consume sepa el formato de response.
 app.use(require('./app/utils/responseHandler'));
 
-// Inicializar WebSocket Server
-const httpServer = app.listen(9000, () => {
+let port = process.env.PORT ? process.env.PORT : 9000;
+// Inicializar WebSocket Server http
+/*
+const httpServer = app.listen(port, () => {
+    console.log('Servidor HTTP escuchando en el puerto 9000');
+    global.wss = initializeWebSocketServer(httpServer); // Inicializa el WebSocket Server
+    // Ahora que el WebSocket Server está inicializado, pasa wss a tus rutas
+
+});
+*/
+//------------HTTPS-----------//
+let certificate = fs.readFileSync("/back/certs/cert.crt", 'utf8');
+
+let privateKey = fs.readFileSync("/back/certs/key.key", 'utf8');
+
+const credentials = {
+    key: privateKey,
+    cert: certificate
+};
+
+let httpsServer = http2.createServer(credentials, app);
+httpsServer.listen(port, () => {
     console.log('Servidor HTTP escuchando en el puerto 9000');
     global.wss = initializeWebSocketServer(httpServer); // Inicializa el WebSocket Server
     // Ahora que el WebSocket Server está inicializado, pasa wss a tus rutas
 
 });
 
+//------------HTTPS-----------//
 // Enrutamos los endpoints al módulo api.
 // host/api/endpoints definidos en la carpeta route..
 
