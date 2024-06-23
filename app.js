@@ -71,7 +71,7 @@ const credentials = {
 let httpsServer = http2.createServer(credentials, app);
 httpsServer.listen(port, () => {
     console.log('Servidor HTTP escuchando en el puerto 9000');
-    global.wss = initializeWebSocketServer(httpServer); // Inicializa el WebSocket Server
+    global.wss = initializeWebSocketServer(httpsServer ); // Inicializa el WebSocket Server
     // Ahora que el WebSocket Server está inicializado, pasa wss a tus rutas
 
 });
