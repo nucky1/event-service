@@ -1,7 +1,8 @@
-// repositories/webSocketRepository.js
+// webSocketRepository.js
 
-const { kem } = require('node-forge');
+const jwt = require('jsonwebtoken');
 const WebSocket = require('ws');
+const { WS_TOKEN_SECRET } = require('../constants/authConstant');
 
 // Objeto para almacenar los clientes conectados por proyecto y código de evento
 const connectedClients = {};
@@ -11,21 +12,33 @@ const initializeWebSocketServer = (server) => {
     const wss = new WebSocket.Server({ server });
 
     wss.on('connection', (ws, req) => {
-        ws.user = { ip: req.socket.remoteAddress };
+        const token = req.url.split('token=')[1];
+        if (!token) {
+            ws.close(1008, 'Token no proporcionado');
+            return;
+        }
 
-        ws.on('message', (message) => {
-            handleMessage(JSON.parse(message), ws, wss);
-        });
+        jwt.verify(token, WS_TOKEN_SECRET, (err, decoded) => {
+            if (err) {
+                ws.close(1008, 'Token inválido');
+                return;
+            }
 
-        ws.on('close', () => {
-            removeClientFromGroups(ws);
+            ws.user = { ...decoded, ip: req.socket.remoteAddress };
+
+            ws.on('message', (message) => {
+                handleMessage(JSON.parse(message), ws, wss);
+            });
+
+            ws.on('close', () => {
+                removeClientFromGroups(ws);
+            });
         });
     });
 
     console.log('WebSocket Server initialized.');
     return wss;
 };
-
 
 // Función para manejar los mensajes recibidos
 const handleMessage = (message, ws, wss) => {
@@ -47,9 +60,7 @@ const handleMessage = (message, ws, wss) => {
 
 // Función para suscribir un usuario a un proyecto y código de evento
 const subscribeUser = (subscriptionData, ws, wss) => {
-    const { proyecto, codigo, user } = subscriptionData;
-
-    ws.user = {...ws.user, ...user};
+    const { proyecto, codigo } = subscriptionData;
 
     if (!connectedClients[proyecto]) {
         connectedClients[proyecto] = {};
@@ -77,13 +88,13 @@ const queryConnectedUsers = (queryData) => {
     const { proyecto, codigo } = queryData;
     let connectedUsers = [];  
     if (connectedClients[proyecto] && !codigo ) {
-        Object.keys(connectedClients[proyecto]).map(key=>{
-            connectedUsers.push(key,Array.from(connectedClients[proyecto][key]).map(ws=>ws.user))
-        }) 
-        console.log(connectedUsers)
+        Object.keys(connectedClients[proyecto]).map(key => {
+            connectedUsers.push({ codigo: key, users: Array.from(connectedClients[proyecto][key]).map(ws => ws.user) });
+        }); 
+        console.log(connectedUsers);
     }
     if (connectedClients[proyecto] && connectedClients[proyecto][codigo]) {
-        connectedUsers = Array.from(connectedClients[proyecto][codigo]).map(ws=>ws-user);
+        connectedUsers = Array.from(connectedClients[proyecto][codigo]).map(ws => ws.user);
     }
     return connectedUsers;
 };

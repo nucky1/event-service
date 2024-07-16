@@ -49,15 +49,16 @@ app.use(require('./app/utils/responseHandler'));
 
 let port = process.env.PORT ? process.env.PORT : 9000;
 // Inicializar WebSocket Server http
-/*
+
 const httpServer = app.listen(port, () => {
     console.log('Servidor HTTP escuchando en el puerto 9000');
     global.wss = initializeWebSocketServer(httpServer); // Inicializa el WebSocket Server
     // Ahora que el WebSocket Server está inicializado, pasa wss a tus rutas
 
 });
-*/
+
 //------------HTTPS-----------//
+/*
 const http2 = require('https');
 let certificate = fs.readFileSync("/back/certs/cert.crt", 'utf8');
 
@@ -73,8 +74,8 @@ httpsServer.listen(port, () => {
     console.log('Servidor HTTP escuchando en el puerto 9000');
     global.wss = initializeWebSocketServer(httpsServer ); // Inicializa el WebSocket Server
     // Ahora que el WebSocket Server está inicializado, pasa wss a tus rutas
-
 });
+*/
 
 //------------HTTPS-----------//
 // Enrutamos los endpoints al módulo api.
