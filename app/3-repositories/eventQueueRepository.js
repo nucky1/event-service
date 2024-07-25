@@ -25,7 +25,6 @@ const subscribeUser = async (userData, subscriptionData) => {
         // Agregar lógica para suscribir al usuario a los eventos
         // Por ejemplo, publicar un mensaje en la cola con los códigos de evento y el proyecto
         await channel.sendToQueue('eventQueue', Buffer.from(JSON.stringify({ userData, codes, proyecto })));
-        console.log('Usuario suscrito correctamente a eventos:', userData);
         await channel.close();
         await connection.close();
     } catch (error) {
@@ -42,7 +41,6 @@ const publishEvent = async (eventData) => {
         // Agregar lógica para publicar el evento en la cola
         // Por ejemplo, publicar un mensaje en la cola con el código de evento, los datos y el proyecto
         await channel.sendToQueue('eventQueue', Buffer.from(JSON.stringify({ codigo, data, proyecto })));
-        console.log('Evento publicado correctamente:', eventData);
         await channel.close();
         await connection.close();
     } catch (error) {
