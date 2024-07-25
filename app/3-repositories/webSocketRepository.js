@@ -1,11 +1,6 @@
-// webSocketRepository.js
-
 const jwt = require('jsonwebtoken');
 const WebSocket = require('ws');
 const { WS_TOKEN_SECRET } = require('../constants/authConstant');
-
-// Objeto para almacenar los clientes conectados por proyecto y código de evento
-const connectedClients = {};
 
 // Función para inicializar el WebSocket Server
 const initializeWebSocketServer = (server) => {
@@ -26,12 +21,13 @@ const initializeWebSocketServer = (server) => {
 
             ws.user = { ...decoded, ip: req.socket.remoteAddress };
 
+            subscribeUser({action:'suscribe',...decoded}, ws, wss);
             ws.on('message', (message) => {
                 handleMessage(JSON.parse(message), ws, wss);
             });
 
             ws.on('close', () => {
-                removeClientFromGroups(ws);
+                removeClientFromRooms(ws, wss);
             });
         });
     });
@@ -61,60 +57,79 @@ const handleMessage = (message, ws, wss) => {
 // Función para suscribir un usuario a un proyecto y código de evento
 const subscribeUser = (subscriptionData, ws, wss) => {
     const { proyecto, codigo } = subscriptionData;
+    const room = `${proyecto}:${codigo}`;
 
-    if (!connectedClients[proyecto]) {
-        connectedClients[proyecto] = {};
-    }
+    ws.rooms = ws.rooms || new Set();
+    ws.rooms.add(room);
 
-    if (!connectedClients[proyecto][codigo]) {
-        connectedClients[proyecto][codigo] = new Set();
-    }
+    wss.clients.forEach(client => {
+        if (client === ws) {
+            client.rooms = ws.rooms;
+        }
+    });
 
-    connectedClients[proyecto][codigo].add(ws);
     console.log('Usuario suscrito correctamente:', { proyecto, codigo, user: ws.user });
 };
 
 // Función para desuscribir un usuario de un proyecto y código de evento
 const unsubscribeUser = (subscriptionData, ws, wss) => {
     const { proyecto, codigo } = subscriptionData;
-    if (connectedClients[proyecto] && connectedClients[proyecto][codigo]) {
-        connectedClients[proyecto][codigo].delete(ws);
-        console.log('Usuario desuscrito correctamente:', subscriptionData);
+    const room = `${proyecto}:${codigo}`;
+
+    if (ws.rooms) {
+        ws.rooms.delete(room);
     }
+
+    wss.clients.forEach(client => {
+        if (client === ws) {
+            client.rooms = ws.rooms;
+        }
+    });
+
+    console.log('Usuario desuscrito correctamente:', subscriptionData);
 };
 
 // Función para consultar los usuarios conectados a un proyecto y código de evento
-const queryConnectedUsers = (queryData) => {
+const queryConnectedUsers = (queryData, ws, wss) => {
     const { proyecto, codigo } = queryData;
-    let connectedUsers = [];  
-    if (connectedClients[proyecto] && !codigo ) {
-        Object.keys(connectedClients[proyecto]).map(key => {
-            connectedUsers.push({ codigo: key, users: Array.from(connectedClients[proyecto][key]).map(ws => ws.user) });
-        }); 
-        console.log(connectedUsers);
-    }
-    if (connectedClients[proyecto] && connectedClients[proyecto][codigo]) {
-        connectedUsers = Array.from(connectedClients[proyecto][codigo]).map(ws => ws.user);
-    }
+    let connectedUsers = [];
+
+    const room = codigo ? `${proyecto}:${codigo}` : proyecto;
+
+    wss.clients.forEach(client => {
+        if (client.rooms && client.rooms.has(room)) {
+            connectedUsers.push(client.user);
+        }
+    });
+
     return connectedUsers;
 };
 
 // Función para eliminar un cliente desconectado de los grupos
-const removeClientFromGroups = (ws) => {
-    Object.keys(connectedClients).forEach((proyecto) => {
-        Object.keys(connectedClients[proyecto]).forEach((codigo) => {
-            connectedClients[proyecto][codigo].delete(ws);
+const removeClientFromRooms = (ws, wss) => {
+    if (ws.rooms) {
+        ws.rooms.forEach(room => {
+            wss.clients.forEach(client => {
+                if (client === ws) {
+                    client.rooms.delete(room);
+                }
+            });
         });
-    });
+    }
 };
 
 // Función para publicar un evento
 const publishEvent = (eventData, wss) => {
     const { proyecto, codigo, data } = eventData;
+    const room = `${proyecto}:${codigo}`;
     const message = JSON.stringify({ codigo, data });
-    wss.clients.forEach((client) => {
-        client.send(message);
+
+    wss.clients.forEach(client => {
+        if (client.rooms && client.rooms.has(room)) {
+            client.send(message);
+        }
     });
+
     console.log('Evento publicado correctamente:', eventData);
 };
 

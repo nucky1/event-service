@@ -21,7 +21,7 @@ let app = http2Express(express);
 app.use(fileUpload());
 // Peticiones del mismo sv.
 app.use(cors({
-    origin: ["*", 'http://127.0.0.1:5500'],
+    origin: ["*","*/*", 'http://127.0.0.1:5500'],
     optionsSuccessStatus: 200
 }));
 
