@@ -32,6 +32,7 @@ const initializeWebSocketServer = (server) => {
         });
     });
 
+    console.log('WebSocket Server initialized.');
     return wss;
 };
 
@@ -67,6 +68,7 @@ const subscribeUser = (subscriptionData, ws, wss) => {
         }
     });
 
+    console.log('Usuario suscrito correctamente:', { proyecto, codigo, user: ws.user });
 };
 
 // Función para desuscribir un usuario de un proyecto y código de evento
@@ -84,6 +86,7 @@ const unsubscribeUser = (subscriptionData, ws, wss) => {
         }
     });
 
+    console.log('Usuario desuscrito correctamente:', subscriptionData);
 };
 
 // Función para consultar los usuarios conectados a un proyecto y código de evento
@@ -127,6 +130,7 @@ const publishEvent = (eventData, wss) => {
         }
     });
 
+    console.log('Evento publicado correctamente:', eventData);
 };
 
 module.exports = {
