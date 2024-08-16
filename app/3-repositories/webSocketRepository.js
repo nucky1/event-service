@@ -56,30 +56,33 @@ const handleMessage = (message, ws, wss) => {
 
 // Función para suscribir un usuario a un proyecto y código de evento
 const subscribeUser = (subscriptionData, ws, wss) => {
-    const { proyecto, codigo } = subscriptionData;
-    const room = `${proyecto}:${codigo}`;
-
+    const { proyecto, codigos } = subscriptionData;
     ws.rooms = ws.rooms || new Set();
-    ws.rooms.add(room);
-
+    for (const codigo of codigos) {
+        const room = `${proyecto}:${codigo}`;
+        ws.rooms.add(room);        
+    }
     wss.clients.forEach(client => {
         if (client === ws) {
             client.rooms = ws.rooms;
         }
     });
 
-    console.log('Usuario suscrito correctamente:', { proyecto, codigo, user: ws.user });
+    console.log('Usuario suscrito correctamente:', { proyecto, codigos, user: ws.user });
 };
 
 // Función para desuscribir un usuario de un proyecto y código de evento
 const unsubscribeUser = (subscriptionData, ws, wss) => {
-    const { proyecto, codigo } = subscriptionData;
-    const room = `${proyecto}:${codigo}`;
-
-    if (ws.rooms) {
-        ws.rooms.delete(room);
-    }
-
+    const { proyecto, codigos } = subscriptionData;
+    ws.rooms = ws.rooms || new Set();
+    for (const codigo of codigos) {
+        const room = `${proyecto}:${codigo}`;
+        ws.rooms.add(room);    
+        if (ws.rooms) {
+            ws.rooms.delete(room);
+        }
+        
+    } 
     wss.clients.forEach(client => {
         if (client === ws) {
             client.rooms = ws.rooms;
@@ -120,15 +123,29 @@ const removeClientFromRooms = (ws, wss) => {
 
 // Función para publicar un evento
 const publishEvent = (eventData, wss) => {
-    const { proyecto, codigo, data } = eventData;
-    const room = `${proyecto}:${codigo}`;
-    const message = JSON.stringify({ codigo, data });
+    const { proyecto, codigo, data,codigos } = eventData;
+    if(codigo){
+        const room = `${proyecto}:${codigo}`;
+        const message = JSON.stringify({ codigo, data });
 
-    wss.clients.forEach(client => {
-        if (client.rooms && client.rooms.has(room)) {
-            client.send(message);
+        wss.clients.forEach(client => {
+            if (client.rooms && client.rooms.has(room)) {
+                client.send(message);
+            }
+        });
+    }
+    if(codigos && codigos.length>0){
+        for (const codigo of codigos) {    
+            const room = `${proyecto}:${codigo}`;
+            const message = JSON.stringify({ codigo, data });
+
+            wss.clients.forEach(client => {
+                if (client.rooms && client.rooms.has(room)) {
+                    client.send(message);
+                }
+            });
         }
-    });
+    }
 
     console.log('Evento publicado correctamente:', eventData);
 };
