@@ -123,7 +123,7 @@ const removeClientFromRooms = (ws, wss) => {
 
 // Función para publicar un evento
 const publishEvent = (eventData, wss) => {
-    const { proyecto, codigo, data,codigos } = eventData;
+    const { proyecto, codigo, data, codigos } = eventData;
     if(codigo){
         const room = `${proyecto}:${codigo}`;
         const message = JSON.stringify({ codigo, data });
@@ -134,7 +134,7 @@ const publishEvent = (eventData, wss) => {
             }
         });
     }
-    if(codigos && codigos.length>0){
+    if(codigos && codigos.length > 0){
         for (const codigo of codigos) {    
             const room = `${proyecto}:${codigo}`;
             const message = JSON.stringify({ codigo, data });
