@@ -123,7 +123,9 @@ const removeClientFromRooms = (ws, wss) => {
 
 // Función para publicar un evento
 const publishEvent = (eventData, wss) => {
-    const { proyecto, codigo, data,codigos } = eventData;
+    const { proyecto, codigo, data, codigos } = eventData;
+    console.log(eventData);
+    
     if(codigo){
         const room = `${proyecto}:${codigo}`;
         const message = JSON.stringify({ codigo, data });
