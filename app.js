@@ -60,9 +60,9 @@ let port = process.env.PORT ? process.env.PORT : 9000;
 //------------HTTPS-----------// 
 
 const http2 = require('https');
-let certificate = fs.readFileSync("/back/certs/cert.crt", 'utf8');
+let certificate = fs.readFileSync("/etc/letsencrypt/live/cilsistema.com/fullchain.pem", 'utf8');
 
-let privateKey = fs.readFileSync("/back/certs/key.key", 'utf8');
+let privateKey = fs.readFileSync("/etc/letsencrypt/live/cilsistema.com/privkey.pem", 'utf8');
 
 const credentials = {
     key: privateKey,
